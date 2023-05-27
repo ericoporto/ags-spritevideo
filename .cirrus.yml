@@ -26,6 +26,41 @@ build_linux_task:
   binaries_artifacts:
     path: lib_*/*
 
+
+build_windows_task:
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+  env:
+    matrix:
+      - BUILD_CONFIG: Release
+    LIBOGG_INCLUDE  : C:\Lib\Xiph\include\ogg
+    LIBOGG_LIB: C:\Lib\Xiph\x86
+    LIBTHEORA_INCLUDE  : C:\Lib\Xiph\include\theora
+    LIBTHEORA_LIB : C:\Lib\Xiph\x86
+    LIBVORBIS_INCLUDE  : C:\Lib\Xiph\include\vorbis
+    LIBVORBIS_LIB : C:\Lib\Xiph\x86
+    LIBPNG_INCLUDE   : C:\Lib\libpng
+    LIBPNG_LIB  : C:\Lib\libpng\lib\x86
+    ZLIB_LIB  : C:\Lib\zlib\lib\x86
+  setup_agscode_script: |
+    pushd ..
+    set url="https://github.com/adventuregamestudio/ags/archive/refs/tags/v.3.6.0.47.tar.gz"
+    mkdir ags && curl -fLSs %url% | tar -f - -xvzC ags --strip-components 1
+    popdx
+  build_script: |
+    mkdir artifacts
+    pushd msvs
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+    msbuild ags_spritevideo.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+    pushd Release
+    copy *.dll ..\..\artifacts\
+    popd
+    popd
+  binaries_artifacts:
+    path: artifacts/*.dll
+
+
 packaging_task:
   depends_on:
     - build_linux
