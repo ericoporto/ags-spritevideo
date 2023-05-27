@@ -67,14 +67,18 @@ RUN mkdir Lib\zlib && \
   mkdir Lib\zlib\lib\x86 && \
   copy Lib\zlib\contrib\vstudio\vc14\x86\ZlibStatRelease\zlibstat.lib Lib\zlib\lib\x86
 
+COPY zlib.props Lib\zlib.props
+
 # Build and install libpng
 ARG LIBPNG_VERSION=1.6.39
 RUN mkdir Lib\libpng && \
   curl -fLSs "https://github.com/glennrp/libpng/archive/refs/tags/v%LIBPNG_VERSION%.tar.gz" | tar -f - -xvzC Lib\libpng --strip-components 1 && \
+  copy Lib\zlib.props Lib\libpng\projects\vstudio\zlib.props && \
   pushd Lib\libpng\projects\vstudio && \
   "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 && \
   msbuild vstudio.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo && \
   popd && \
+  rm Lib\zlib.props && \
   mkdir Lib\libpng\lib && \
   mkdir Lib\libpng\lib\x86 && \
   copy Lib\libpng\projects\vstudio\Release\libpng16.lib Lib\libpng\lib\x86
